@@ -1,0 +1,78 @@
+# FastTrack AI Master Configuration
+app:
+  name: "FAST-TRACK AI"
+  version: "1.0.0"
+  environment: "development"
+  demo_mode: true
+  clock: "system"  # 'system' or 'simulated'
+
+storage:
+  db_path: "data/fasttrack.db"
+  evidence_dir: "evidence"
+  logs_dir: "logs"
+  weights_dir: "weights"
+  reports_eval_dir: "reports/eval"
+  min_disk_free_gb: 2.0
+
+logging:
+  level: "INFO"
+  file_name: "logs/fasttrack.log"
+  max_bytes: 10485760  # 10 MB
+  backup_count: 5
+
+weapon_detector:
+  model_checkpoint: "weights/weapon_yolo.pt"
+  fallback_checkpoint: "weights/yolo11n.pt"
+  input_size: 640
+  default_confidence_threshold: 0.50
+  per_class_thresholds:
+    knife: 0.48
+    gun: 0.50
+    pistol: 0.50
+    rifle: 0.50
+    weapon: 0.50
+    grenade: 0.50
+    scissors: 0.50
+    baseball bat: 0.50
+  nms_iou_threshold: 0.45
+  min_box_area_px: 400
+  max_aspect_ratio: 8.0
+  k_of_n:
+    k: 2
+    n: 4
+  track_persistence_sec: 2.0
+  tiled_inference: false
+  use_fp16: false
+
+violence_classifier:
+  model_architecture: "mobilenet_bilstm"  # 'mobilenet_bilstm', 's3d', or 'r3d_18'
+  weights_path: "weights/violence_mobilstm.pt"
+  clip_seconds: 2.0
+  clip_frames: 16
+  image_size: 64
+  stride_seconds: 0.5
+  trigger_threshold: 0.65
+  release_threshold: 0.40
+  consecutive_windows: 2
+  cooldown_seconds: 5.0
+  ema_smoothing_alpha: 0.35
+  temperature: 1.0
+
+event_engine:
+  incident_merge_gap_seconds: 10.0
+  incident_max_duration_seconds: 300.0
+  camera_rate_limit_per_min: 6
+  global_rate_limit_per_min: 24
+
+evidence:
+  pre_roll_seconds: 3.0
+  post_roll_seconds: 4.0
+  jpeg_quality: 85
+  retention_days: 30
+  encrypt_at_rest: false
+
+ui:
+  theme: "dark"
+  display_fps: 10
+  anonymize_faces: false
+  alert_sound: true

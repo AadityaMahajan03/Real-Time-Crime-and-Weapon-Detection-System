@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  fasttrack-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fasttrack-ai-server
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - FASTTRACK_ENV=production
+      - FASTTRACK_LOG_LEVEL=INFO
+    env_file:
+      - .env
+    volumes:
+      - fasttrack-data:/app/data
+      - fasttrack-evidence:/app/evidence
+      - fasttrack-logs:/app/logs
+      - ./weights:/app/weights:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  fasttrack-data:
+  fasttrack-evidence:
+  fasttrack-logs:

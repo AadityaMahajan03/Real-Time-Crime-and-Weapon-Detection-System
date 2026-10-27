@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fasttrack-ai"
+version = "1.0.0"
+description = "Real-Time Crime and Weapon Detection Surveillance Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # line length handled by formatter
+    "E402",  # module import order when sys.path is manipulated
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

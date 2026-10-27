@@ -1,0 +1,29 @@
+{
+  "generated_utc": "2026-01-01T12:00:02.500000+00:00",
+  "record_count": 2,
+  "sha256": "dce299f44e1762a549b9dfe267772cf6b7dd0903b8d1702637c4135785e8815d",
+  "records": [
+    {
+      "id": "act-e647f428fb",
+      "incident_id": "inc-cbbf9cef52",
+      "user_id": "u-a58266b581",
+      "action": "escalate",
+      "note": "Escalation Reason: P1-EMERGENCY. Details: Emergency dispatch authorized by shift supervisor.",
+      "ts_utc": "2026-01-01T12:00:02.500000+00:00",
+      "camera_id": "cam_e2e_01",
+      "severity": "HIGH",
+      "current_incident_status": "escalated"
+    },
+    {
+      "id": "act-a25434687d",
+      "incident_id": "inc-cbbf9cef52",
+      "user_id": "u-a58266b581",
+      "action": "mark_reviewed",
+      "note": "Confirmed knife threat in courtyard. Escalating to field team.",
+      "ts_utc": "2026-01-01T12:00:02.500000+00:00",
+      "camera_id": "cam_e2e_01",
+      "severity": "HIGH",
+      "current_incident_status": "escalated"
+    }
+  ]
+}

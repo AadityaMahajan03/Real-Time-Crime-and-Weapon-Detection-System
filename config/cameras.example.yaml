@@ -1,0 +1,56 @@
+# FastTrack AI Cameras Configuration Example
+# Passwords/tokens must NEVER be hard-coded here.
+# Use environment variable references or local IDs.
+
+cameras:
+  - id: "cam-01"
+    name: "Main Entrance Gate"
+    source_type: "webcam"
+    source_ref: "0"
+    enabled: true
+    fps_override: 25.0
+    zones:
+      - name: "Perimeter Include"
+        zone_type: "include"
+        polygon: [[0.05, 0.10], [0.95, 0.10], [0.95, 0.90], [0.05, 0.90]]
+    thresholds:
+      weapon_confidence: 0.50
+      violence_confidence: 0.65
+    schedule:
+      active_24_7: true
+
+  - id: "cam-02"
+    name: "Corridor South Hall"
+    source_type: "file"
+    source_ref: "data/demo_corridor.mp4"
+    enabled: true
+    loop: true
+    zones: []
+    thresholds:
+      weapon_confidence: 0.45
+      violence_confidence: 0.60
+    schedule:
+      active_24_7: true
+
+  - id: "cam-03"
+    name: "Authorized Secure Vault"
+    source_type: "rtsp"
+    # In real deployment, source_ref is fetched securely using env vars:
+    # rtsp://${RTSP_USER}:${RTSP_PASS}@192.168.1.120:554/stream1
+    # For documentation and UI, it is always masked:
+    source_ref: "rtsp://***@192.168.1.120:554/stream1"
+    enabled: false
+    reconnect_delay_seconds: 2.0
+    max_reconnect_attempts: 10
+    zones:
+      - name: "Cash Counter Ignore"
+        zone_type: "ignore"
+        polygon: [[0.70, 0.70], [0.98, 0.70], [0.98, 0.98], [0.70, 0.98]]
+    thresholds:
+      weapon_confidence: 0.55
+      violence_confidence: 0.70
+    schedule:
+      active_24_7: false
+      active_hours:
+        start: "18:00"
+        end: "06:00"

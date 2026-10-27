@@ -1,0 +1,324 @@
+====================================================================================================
+REAL-TIME CRIME AND WEAPON DETECTION SYSTEM (FAST-TRACK AI)
+COMPREHENSIVE PROJECT DETAILS, ARCHITECTURE, WORKFLOW & OPERATION MANUAL
+====================================================================================================
+
+Document Generated: October 2026
+Project Root: d:\projects\REAL-TIME CRIME AND WEAPON DETECTION SYSTEM
+Platform Compatibility: Windows 10/11, Linux (Ubuntu 20.04+), macOS (Apple Silicon / Intel)
+Hardware Acceleration: NVIDIA CUDA (RTX 3050+ Laptop/Desktop GPU) or Multi-threaded CPU Fallback
+Python Environment: Python 3.10+
+Node.js Environment: Node.js v18.0+ / npm v9.0+
+
+====================================================================================================
+1. PROJECT OVERVIEW & CORE OBJECTIVES
+====================================================================================================
+The Real-Time Crime and Weapon Detection System (Fast-Track AI) is an autonomous, high-throughput,
+multi-modal neural surveillance platform designed to detect armed threats and physical violence in
+real-time across enterprise CCTV networks, RTSP IP cameras, webcams, and pre-recorded forensic footage.
+
+Core Capabilities:
+1. Real-Time Weapon Detection: Fine-tuned Ultralytics YOLO11n model identifying handguns, knives,
+   and assault weapons with high temporal precision.
+2. 2D Discrete Wavelet Transform (DWT) Preprocessing: Enhances subtle high-frequency edge gradients
+   (weapon contours, metallic reflections) in poor CCTV lighting conditions prior to inference.
+3. False-Alarm Suppression Subsystem: Smartphone geometric filtering and bounding-box suppression
+   to eliminate false gun flags caused by mobile phones, wallets, or handheld tools.
+4. Spatiotemporal Violence / Fight Detection: Action recognition using MobileNetV2-LSTM and R3D-18
+   3D CNNs to evaluate temporal motion dynamics and human-to-human physical combat.
+5. Automated Forensic Incident Locking: In-memory pre-roll and post-roll video ring buffers that
+   cut raw and annotated MP4 evidence clips with SHA-256 tamper-evident digital hashes.
+6. Unified Operator Interfaces:
+   - Modern Next.js 14 Web Application for real-time video monitoring, incident review, and triage.
+   - Streamlit Command Center for model benchmarking, ROC/PR curve analytics, and audit log exports.
+   - FastAPI High-Performance REST API backend coordinating inference, database, and telemetry.
+
+====================================================================================================
+2. TECHNOLOGY STACK & DEPENDENCIES
+====================================================================================================
+A. Deep Learning & Computer Vision:
+   - PyTorch 2.1+ (CUDA 12.x / CPU)
+   - Ultralytics YOLO (YOLO11n custom fine-tuned & standard COCO heads)
+   - TorchVision 0.16+ (R3D-18 Spatiotemporal CNN, MobileNetV2)
+   - OpenCV (cv2) 4.8+ (Hardware-accelerated video decoding, frame drawing, video encoding)
+   - PyWavelets (pywt) (2D Haar/Daubechies Discrete Wavelet Transform)
+   - NumPy & SciPy (Array manipulations, Kalman filtering, exponential moving averages)
+
+B. Backend Server & API:
+   - FastAPI 0.100+ (Asynchronous ASGI framework)
+   - Uvicorn (ASGI production server)
+   - SQLite3 with Write-Ahead Logging (WAL mode for zero-lock concurrency)
+   - Pydantic v2 (Data validation, schemas, and API contracts)
+
+C. Frontend Modern Web Application:
+   - Next.js 14 (React 18, App Router architecture)
+   - TypeScript 5+ (Strict type safety)
+   - TailwindCSS 3.4+ (Cyber-defense dark theme, glassmorphism, responsive grid)
+   - Framer Motion (Smooth layout transitions and modal animations)
+   - Recharts (Interactive severity distribution pie charts, temporal threat area graphs)
+   - Lucide React (Cyber-security iconography)
+
+D. Secondary Analytical Interface:
+   - Streamlit 1.28+ (Real-time forensic review, analytics, model comparison dashboard)
+   - Plotly Express & Graph Objects (Precision-recall curves, ROC curves, interactive Pareto charts)
+
+E. Testing & Quality Assurance:
+   - Pytest 9.0+ & AnyIO (108 automated unit and integration tests passing)
+   - Starlette TestClient (Automated REST endpoint validation)
+
+====================================================================================================
+3. SYSTEM ARCHITECTURE & DATA FLOW
+====================================================================================================
+[Camera Ingestion] ---> [In-Memory Ring Buffer] ---> [Wavelet / Preprocessing]
+       |                                                      |
+(RTSP / Webcam / File)                                        v
+                                                +----------------------------+
+                                                |   Dual Neural Pipelines    |
+                                                +----------------------------+
+                                                | 1. YOLO11n Weapon Head     |
+                                                |    - Phone Suppression     |
+                                                |    - Geometric Verifier    |
+                                                | 2. MobileNet-LSTM / R3D-18 |
+                                                |    - Spatiotemporal Action |
+                                                |    - Kinetic Dynamics      |
+                                                +----------------------------+
+                                                              |
+                                                              v
+                                                [Event Engine & Severity Triage]
+                                                              |
+                              +-------------------------------+-------------------------------+
+                              |                               |                               |
+                              v                               v                               v
+                    [SQLite WAL Database]          [Evidence Clip Cutter]            [Real-time Dispatches]
+                    (Incidents, Audit Logs)       (Raw MP4 + SHA-256 Hash)          (Next.js UI & Webhooks)
+
+Detailed Flow Breakdown:
+1. Video Ingestion:
+   - Supported inputs: Live USB webcams (`/dev/video0` or `0`), RTSP IP camera streams (`rtsp://`),
+     and pre-recorded MP4/AVI security clips.
+   - Robust reconnection manager handles RTSP dropouts with exponential backoff and watchdog restarts.
+
+2. Wavelet Edge Enhancement:
+   - Employs 2D Discrete Wavelet Transform (DWT) using Haar wavelets to separate input frames into
+     approximation (LL) and high-frequency subbands (LH, HL, HH).
+   - High-frequency subbands are amplified and re-synthesized via Inverse DWT (IDWT) to enhance blade
+     edges, barrel outlines, and metallic specular highlights before YOLO inference.
+
+3. Weapon Detection & Smartphone Rejection:
+   - YOLO11n detects weapons (`gun`, `knife`).
+   - Phone Suppression Filter: Simultaneously evaluates COCO class 67 (`cell phone`). If a detected
+     box heavily overlaps with a cell phone bounding box (IoU > 0.40) or matches smartphone geometric
+     characteristics (aspect ratio > 1.65 with uniform flat texture), it is filtered out to prevent
+     embarrassing false alarms.
+   - Spatial Pose Prior: Rejects weapon false positives located at ground level near shoes/floors.
+
+4. Spatiotemporal Violence Classification:
+   - Samples 16-frame temporal sliding windows.
+   - Passes frames through MobileNetV2 feature extractor linked to an LSTM temporal head (or R3D-18).
+   - Multi-person kinetic contact gating ensures violent alerts trigger only when human interaction
+     is detected, suppressing false alarms from isolated fast movements.
+
+5. Event Engine & Severity Calculation:
+   - Combines peak weapon confidence ($W$) and peak violence score ($V$) into a composite score:
+     $Threat = \max(W, V) \times 0.7 + \min(W, V) \times 0.3$.
+   - Applies dual-threshold hysteresis (trigger threshold: 0.70, release threshold: 0.45) to prevent
+     alert flickering.
+   - Severity categorized as Critical, High, Medium, Low, or Safe.
+
+6. Evidence Preservation & Chain of Custody:
+   - Pulls 5 seconds pre-roll and 5 seconds post-roll frames from the in-memory ring buffer.
+   - Asynchronously encodes raw MP4 and annotated MP4 clips using FFmpeg / OpenCV H.264.
+   - Computes SHA-256 cryptographic digest of the file and stores it in the immutable audit log.
+
+====================================================================================================
+4. PROJECT DIRECTORY STRUCTURE
+====================================================================================================
+REAL-TIME CRIME AND WEAPON DETECTION SYSTEM/
+│
+├── web/                               # Next.js 14 Modern Web Application
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── api/
+│   │   │   │   ├── detect/route.ts            # Proxy for browser frame detection
+│   │   │   │   └── incidents/[id]/status/     # Proxy route for incident triage status updates
+│   │   │   ├── incidents/page.tsx             # Forensic Incident Management & Search
+│   │   │   ├── live/page.tsx                  # Multi-camera Live Tactical Grid & Monitor
+│   │   │   ├── models/page.tsx                # Neural Model Registry & Benchmark Metrics
+│   │   │   ├── layout.tsx                     # Cyber-defense App Shell & Navigation
+│   │   │   ├── page.tsx                       # Command Center Dashboard Overview
+│   │   │   └── globals.css                    # Tailwind CSS custom styles & neon glows
+│   │   ├── components/
+│   │   │   ├── incidents/
+│   │   │   │   └── incident-drawer.tsx        # Forensic Triage Drawer (Confirm/False Alarm/Escalate)
+│   │   │   ├── live/
+│   │   │   │   └── video-panel.tsx            # Live Video Stream Canvas & Bounding Box Renderer
+│   │   │   └── ui/
+│   │   │       ├── glass-card.tsx             # Frosted glass UI container
+│   │   │       ├── kpi-card.tsx               # Metric cards with trend deltas
+│   │   │       ├── severity-badge.tsx         # Color-coded severity chips
+│   │   │       └── status-chip.tsx            # Status pills (Open, In Review, Resolved, Escalated)
+│   │   └── lib/
+│   │       ├── api.ts                         # Client-side API fetchers
+│   │       ├── mock-data.ts                   # Initial fallback data & color constants
+│   │       ├── store.ts                       # Zustand centralized reactive state store
+│   │       └── types.ts                       # TypeScript interfaces (Incident, Camera, AIModel)
+│   ├── public/
+│   │   ├── clips/                             # Video clips for live simulation and test feeds
+│   │   └── evidence/                          # Forensic incident snapshot evidence captures
+│   └── package.json                           # Next.js dependencies and scripts
+│
+├── src/fasttrack/                     # Core Python Backend Engine
+│   ├── api/
+│   │   └── main.py                            # FastAPI application entrypoint & REST routing
+│   ├── core/
+│   │   ├── alarm_service.py                   # Security siren, audio alerts & hysteresis
+│   │   ├── config.py                          # Pydantic system settings & environment overrides
+│   │   ├── event_engine.py                    # Incident aggregation, ring buffer & evidence cutter
+│   │   ├── notification_dispatcher.py         # Webhook & operator dispatch logic
+│   │   ├── review_service.py                  # RBAC, audit logs & status transitions
+│   │   └── video_sources.py                   # OpenCV, RTSP & webcam stream readers
+│   ├── db/
+│   │   ├── migrations.py                      # SQLite database schema migrations
+│   │   └── repositories.py                    # Camera, Incident & Audit log data access objects
+│   ├── ml/
+│   │   ├── mobilstm.py                        # MobileNetV2-LSTM PyTorch neural architecture
+│   │   ├── r3d_classifier.py                  # TorchVision 3D CNN spatiotemporal head
+│   │   ├── wavelet_enhancer.py                # 2D DWT subband contrast & edge enhancement
+│   │   ├── weapon_detector.py                 # YOLO11 inference, phone rejection & geometric filter
+│   │   └── violence_classifier.py             # Action recognition pipeline with temperature scaling
+│   └── pipeline/
+│       ├── stream_manager.py                  # Multi-camera pipeline orchestration
+│       └── video_pipeline.py                  # Capture, processing & inference workers
+│
+├── ui/                                # Streamlit Command Center (Secondary Interface)
+│   ├── app.py                                 # Streamlit main landing hub
+│   └── pages/
+│       ├── 01_overview.py                     # Overview KPI cards & Plotly severity distribution
+│       ├── 02_live_monitor.py                 # Multi-feed live monitoring view
+│       ├── 03_incident_review.py              # Forensic clip player, verification & hash checker
+│       ├── 04_analytics.py                    # MTTR, false alarm rates & Pareto threat trends
+│       └── 05_evaluation.py                   # Model benchmark charts (PR/ROC curves)
+│
+├── tests/                             # Automated Test Suite (108 Tests)
+│   ├── test_alarm_service.py                  # Siren hysteresis & acknowledgment tests
+│   ├── test_analytics.py                      # KPI calculations & MTTR metric tests
+│   ├── test_api_stream.py                     # Video streaming HTTP 200/206 range request tests
+│   ├── test_event_engine.py                   # Ring buffer, evidence writer & zone filtering tests
+│   ├── test_wavelet_detection.py              # Wavelet decomposition & contrast enhancement tests
+│   ├── test_weapon_pipeline.py                # YOLO inference, phone suppression & pose prior tests
+│   └── test_violence_pipeline.py              # S3D, MobileNet-LSTM & kinetic gating tests
+│
+├── weights/                           # Pre-trained & Fine-Tuned Neural Model Weights
+│   ├── yolo11n.pt                             # Ultralytics YOLO11n weights
+│   └── mobilstm_violence.pt                   # Pretrained MobileNet-LSTM weights
+│
+├── fasttrack.db                       # Local SQLite Database (WAL mode enabled)
+├── requirements.txt                   # Python library dependencies
+└── pytest.ini                         # Test runner configuration
+
+====================================================================================================
+5. REST API ENDPOINTS SPECIFICATION (FASTAPI)
+====================================================================================================
+Base URL: http://127.0.0.1:8000
+
+1. `POST /api/detect`
+   - Description: Accepts a video frame (JPEG base64 or multipart image) and returns neural detections.
+   - Pipeline: Applies Wavelet enhancement -> YOLO11n weapon detector -> Phone suppression ->
+     Violence classifier -> Returns bounding boxes, labels, confidence scores, and threat status.
+   - Auto-Incident Trigger: When a high-confidence threat (>0.70) is detected, an incident is
+     automatically persisted into SQLite, snapshot saved to disk, and alert broadcast.
+
+2. `GET /api/incidents`
+   - Description: Retrieves paginated list of recorded incidents.
+   - Query Parameters: `limit` (default: 50), `severity` (optional filter: critical, high, medium, low).
+
+3. `POST /api/incidents`
+   - Description: Manually records or auto-generates a new security incident.
+   - Payload: `camera_id`, `severity`, `threat_type`, `description`, `confidence`.
+
+4. `POST /api/incidents/{incident_id}/status`
+   - Description: Updates the forensic status of an incident (used by triage buttons).
+   - Payload: `{"status": "in_review" | "resolved" | "escalated", "reviewer_notes": string}`
+   - Action: Updates SQLite record, writes an immutable record to the audit log with timestamp.
+
+5. `GET /api/cameras` & `POST /api/cameras`
+   - Description: Lists all monitored cameras and registers new RTSP or webcam sources.
+
+6. `GET /api/stream/{clip_name}`
+   - Description: High-speed video streaming endpoint supporting HTTP 206 Partial Content range
+     headers for seamless scrubbing and replay in web browsers.
+
+7. `GET /health`
+   - Description: System heartbeat returning GPU VRAM availability, active camera count, and uptime.
+
+====================================================================================================
+6. FORENSIC INCIDENT TRIAGE WORKFLOW
+====================================================================================================
+When an incident is detected or opened in the Next.js Drawer or Streamlit Reviewer:
+1. "Confirm Threat" Button:
+   - Action: Transitions status to `in_review`.
+   - Result: Confirms human operator validation of the AI detection. Generates an immediate audit
+     log entry: "Status changed to in_review. Threat confirmed by Operator."
+
+2. "False Alarm" Button:
+   - Action: Transitions status to `resolved` with resolution tag `false_alarm`.
+   - Result: Automatically cancels active audible sirens, resets threat hysteresis, and updates
+     analytics metrics to recalculate False Alarm Rate (FAR).
+
+3. "Escalate" Button:
+   - Action: Transitions status to `escalated`.
+   - Result: Elevates priority to Maximum Criticality, triggers high-priority security webhooks,
+     and locks all recorded MP4 video segments against retention purge policies.
+
+====================================================================================================
+7. HOW TO RUN AND OPERATE THE SYSTEM
+====================================================================================================
+Prerequisites:
+- Terminal: Windows PowerShell or bash
+- Working Directory: d:\projects\REAL-TIME CRIME AND WEAPON DETECTION SYSTEM
+
+Step 1: Install Python Dependencies (Initial Setup)
+   pip install -r requirements.txt
+
+Step 2: Install Web Dependencies (Initial Setup)
+   cd web
+   npm install
+   cd ..
+
+Step 3: Launch FastAPI Neural Backend (Port 8000)
+   python -m uvicorn src.fasttrack.api.main:app --port 8000 --host 127.0.0.1
+   -> Available at: http://127.0.0.1:8000
+   -> Swagger API Docs: http://127.0.0.1:8000/docs
+
+Step 4: Launch Next.js Modern Web Interface (Port 3000)
+   npm --prefix web run dev
+   -> Available at: http://localhost:3000
+   - Dashboard: http://localhost:3000/
+   - Live Monitor: http://localhost:3000/live
+   - Incidents Triage: http://localhost:3000/incidents
+   - Model Registry: http://localhost:3000/models
+
+Step 5: Launch Streamlit Operator Command Center (Port 8501)
+   python -m streamlit run app.py --server.port 8501 --server.headless true
+   -> Available at: http://localhost:8501
+
+Step 6: Run Automated Verification Tests
+   pytest tests/ -v -k "not test_camera_stream_worker"
+   -> Verifies all 108 unit and integration test cases across the entire codebase.
+
+====================================================================================================
+8. KEY CONFIGURATION SETTINGS (src/fasttrack/core/config.py)
+====================================================================================================
+- `DEVICE`: `"cuda"` if NVIDIA GPU available with VRAM >= 3.5GB, otherwise `"cpu"`.
+- `WEAPON_CONFIDENCE_THRESHOLD`: `0.50` (Calibrated floor for raw detection).
+- `VIOLENCE_CONFIDENCE_THRESHOLD`: `0.65` (Action recognition trigger floor).
+- `HYSTERESIS_HIGH`: `0.70` (Threat trigger threshold).
+- `HYSTERESIS_LOW`: `0.45` (Threat release threshold).
+- `PHONE_SUPPRESSION_IOU`: `0.40` (Overlap threshold to suppress phone-as-gun false alarms).
+- `PHONE_ASPECT_RATIO_MAX`: `1.65` (Rejection floor for rectangular phone dimensions).
+- `RING_BUFFER_PRE_ROLL_SECONDS`: `5` (Pre-incident evidence buffer length).
+- `RING_BUFFER_POST_ROLL_SECONDS`: `5` (Post-incident evidence buffer length).
+
+====================================================================================================
+END OF SYSTEM SPECIFICATION
+====================================================================================================

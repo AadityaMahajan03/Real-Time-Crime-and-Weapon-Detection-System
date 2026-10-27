@@ -1,0 +1,51 @@
+{
+  "timestamp_utc": "2026-10-18T08:13:46.430941+00:00",
+  "platform": {
+    "system": "Windows",
+    "release": "10",
+    "version": "10.0.26300",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 141 Stepping 1, GenuineIntel",
+    "cpu_physical_cores": 6,
+    "cpu_logical_cores": 12,
+    "total_ram_gb": 11.65,
+    "available_ram_gb": 0.34
+  },
+  "python": {
+    "version": "3.10.9",
+    "executable": "C:\\Users\\mahaj\\AppData\\Local\\Programs\\Python\\Python310\\python.exe"
+  },
+  "ml_frameworks": {
+    "pytorch": {
+      "version": "2.11.0+cu128",
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "cudnn_version": 91900,
+      "gpus": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+          "total_vram_gb": 4.0,
+          "compute_capability": "8.6"
+        }
+      ]
+    },
+    "torchvision": {
+      "version": "0.26.0+cu128"
+    },
+    "ultralytics": {
+      "version": "8.4.14"
+    },
+    "opencv": {
+      "version": "4.11.0",
+      "cuda_enabled": false
+    },
+    "streamlit": {
+      "version": "1.64.0"
+    }
+  },
+  "sqlite": {
+    "version": "3.39.4",
+    "threadsafety": 1
+  }
+}

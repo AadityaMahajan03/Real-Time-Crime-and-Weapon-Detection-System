@@ -1,0 +1,683 @@
+====================================================================================================
+FAST-TRACK AI: REAL-TIME CRIME AND WEAPON DETECTION SYSTEM
+COMPLETE ARCHITECTURE, WORKFLOW, MATHEMATICAL SPECIFICATION & SYSTEM REFERENCE MANUAL
+====================================================================================================
+
+Target Environment: Production CCTV Networks, Webcams & Recorded Footage
+Target Hardware: NVIDIA GeForce RTX 3050 Laptop GPU (4.0 GB VRAM, CUDA 12.8) / Host CPU Fallback
+Technology Stack: Python 3.10+, PyTorch 2.1+, Ultralytics YOLO, TorchVision S3D, OpenCV, SQLite (WAL), Streamlit
+Project Root Directory: d:\projects\REAL-TIME CRIME AND WEAPON DETECTION SYSTEM
+Documentation Version: 2.4.0 (Consolidated Master Edition)
+
+
+====================================================================================================
+TABLE OF CONTENTS
+====================================================================================================
+1. EXECUTIVE SUMMARY & PROBLEM STATEMENT
+2. CORE PHILOSOPHY & ETHICAL NON-GOALS
+3. COMPLETE END-TO-END SYSTEM WORKFLOW & ARCHITECTURE
+   3.1 Video Ingestion & Early Preprocessing
+   3.2 In-Memory JPEG Ring Buffer (Pre-roll / Post-roll)
+   3.3 Spatial Weapon Detection & Benign Suppression
+   3.4 Multi-Object Tracking & K-of-N Candidate Confirmation
+   3.5 Spatiotemporal Violence Classification & Kinetic Dynamics
+   3.6 Temporal Event Engine & Severity Rule Triage
+   3.7 Real-Time Audio-Visual Security Alarm System
+   3.8 Cryptographic Evidence Subsystem & Chain of Custody
+   3.9 Multi-Channel Notification & Quiet-Hours Dispatch
+   3.10 Human-in-the-Loop Operator Review & Triage
+4. MATHEMATICAL FORMULATIONS & ALGORITHMIC SPECIFICATIONS
+   4.1 YOLO Spatial Loss Formulation (GIoU + BCE + DFL)
+   4.2 ByteTrack Kalman State Estimation & Association
+   4.3 K-of-N Temporal Confirmation Algorithm
+   4.4 S3D Separable 3D Spatiotemporal Convolutions
+   4.5 Temperature Scaling & Probability Calibration
+   4.6 Kinetic Motion Dynamics Differencing
+   4.7 Exponential Moving Average (EMA) Smoothing
+   4.8 Dual-Threshold Hysteresis State Transitions
+   4.9 Alert Storm Token-Bucket Rate Limiter
+5. DATABASE ARCHITECTURE & SCHEMA SPECIFICATION
+6. COMMAND CENTER USER INTERFACE (PAGE-BY-PAGE BREAKDOWN)
+7. CODEBASE DIRECTORY MAP & FILE ROLES
+8. HOW TO INSTALL, CONFIGURE, TEST & OPERATE
+9. EXAMINER VIVA & DEFENSE QUESTIONS AND ANSWERS
+
+
+====================================================================================================
+1. EXECUTIVE SUMMARY & PROBLEM STATEMENT
+====================================================================================================
+Conventional CCTV systems across public infrastructure, educational campuses, transit hubs, and
+commercial facilities are almost entirely passive: footage is encoded to digital video recorders
+(DVRs/NVRs) and reviewed only post-factum, long after an armed robbery, assault, or active shooter
+event has concluded.
+
+Real-time human monitoring of multi-camera walls suffers from severe cognitive vulnerability:
+empirical studies in visual vigilance prove that human detection accuracy drops by over 73%
+after only 20 minutes of continuous surveillance screen monitoring. Subtle threats, such as a
+concealed blade or a silent physical altercation in a corridor, routinely escape human notice.
+
+FAST-TRACK AI solves this critical vulnerability by providing an autonomous, real-time,
+human-in-the-loop decision-support platform. It continuously processes live video streams (webcams,
+RTSP feeds, and recorded video files), decouples spatial object detection from spatiotemporal
+action classification, performs multi-frame tracking confirmation, triggers localized browser-based
+acoustic alarms, generates cryptographically signed tamper-evident forensic evidence, and presents
+actionable candidate incidents to human security operators inside an interactive Command Center.
+
+
+====================================================================================================
+2. CORE PHILOSOPHY & ETHICAL NON-GOALS
+====================================================================================================
+FAST-TRACK AI is governed by strict ethical and technical boundaries:
+
+1. Prediction, Never Proof:
+   All neural network outputs are strictly probabilistic indicators (e.g., "detected object: knife (0.78)"
+   or "possible violence (0.65)"). The system never asserts guilt or definitive criminality.
+
+2. Zero Biometrics / Zero Demographic Profiling:
+   Facial recognition, identity inference, gender classification, racial profiling, and age estimation
+   are strictly prohibited and completely absent from the codebase.
+
+3. Zero Automated Police Dispatch:
+   The system never directly summons emergency armed response automatically. All alerts remain internal
+   candidate incidents requiring verified human operator confirmation before off-site escalation.
+
+4. Privacy by Design:
+   Automated facial anonymization (Haar Cascade + Gaussian Blurring) obfuscates human faces before keyframe
+   evidence snapshots are committed to disk or rendered in forensic audit views.
+
+5. Zero Secrets in Logs or Databases:
+   RTSP credentials, connection tokens, and passwords in stream URLs are automatically sanitized upon
+   ingestion (e.g., "rtsp://admin:secret@192.168.1.50" -> "rtsp://***@192.168.1.50").
+
+6. Never Invent Metrics:
+   Every chart, ROC curve, precision-recall curve, and confusion matrix rendered in the Command Center
+   traces directly to static, reproducible evaluation artifacts stored in reports/eval/.
+
+
+====================================================================================================
+3. COMPLETE END-TO-END SYSTEM WORKFLOW & ARCHITECTURE
+====================================================================================================
+
+               +-------------------------------------------------------------+
+               |                  1. VIDEO INGESTION LAYER                   |
+               | (RTSP Cameras / USB Webcams / Uploaded MP4 Video Files)     |
+               +------------------------------+------------------------------+
+                                              |
+                                              v
+               +-------------------------------------------------------------+
+               |                  2. BOUNDED FRAME QUEUE                     |
+               | (Drop-Oldest LIFO Queue: Prevents Latency Buildup)          |
+               +------------------------------+------------------------------+
+                                              |
+                     +------------------------+------------------------+
+                     |                                                 |
+                     v                                                 v
+   +------------------------------------+   +------------------------------------+
+   | 3A. SPATIAL WEAPON INFERENCE       |   | 3B. SPATIOTEMPORAL VIOLENCE STREAM |
+   | - YOLO Detector (GPU FP16)         |   | - 16-Frame Rolling Window (8 Hz)   |
+   | - Classes: Gun, Knife, Grenade     |   | - TorchVision S3D Action Classifier|
+   | - Benign Object Suppression        |   | - Kinetic Frame-Diff Motion Energy |
+   | - Geometric Aspect Ratio Filters   |   | - Temperature Calibrated (T=1.28)  |
+   +-----------------+------------------+   +-----------------+------------------+
+                     |                                        |
+                     v                                        v
+   +------------------------------------+   +------------------------------------+
+   | 4A. BYTETRACK TEMPORAL TRACKER     |   | 4B. HYSTERESIS STATE MACHINE       |
+   | - Kalman Filter State Estimation   |   | - Dual-Threshold (Ton=0.65/Toff=0.4|
+   | - K-of-N Candidate Confirmation    |   | - Multi-Window Persistence Filter  |
+   +-----------------+------------------+   +-----------------+------------------+
+                     |                                        |
+                     +------------------------+---------------+
+                                              |
+                                              v
+               +-------------------------------------------------------------+
+               |                 5. TEMPORAL EVENT ENGINE                    |
+               | - Spatial Include / Ignore Polygon Zone Gating              |
+               | - Token Bucket Alert Storm Rate Limiting                    |
+               | - Rule-Based Severity Triage (HIGH / MEDIUM / LOW / INFO)   |
+               +------------------------------+------------------------------+
+                                              |
+         +------------------------------------+------------------------------------+
+         |                                    |                                    |
+         v                                    v                                    v
++------------------+                +--------------------+               +-------------------+
+| 6. VISUAL/AUDIO  |                | 7. EVIDENCE & DISK |               | 8. OPERATOR TRIAGE|
+|    ALARM         |                | - Snapshot Image   |               |    COMMAND CENTER |
+| - Web Audio API  |                | - SHA-256 Digest   |               | - Live Video Wall |
+|   880Hz-440Hz    |                | - Video Clip Link  |               | - Forensic Review |
+| - Flashing HUD   |                | - Privacy Blurring |               | - False Alarm Tag |
+|   Tactical Banner|                | - SQLite WAL Store |               | - Escalate Action |
++------------------+                +--------------------+               +-------------------+
+
+
+3.1 VIDEO INGESTION & EARLY PREPROCESSING
+----------------------------------------------------------------------------------------------------
+- Sources: Multi-format adapter supporting RTSP H.264/H.265 streams, local USB/integrated webcams
+  (DirectShow on Windows / V4L2 on Linux), and pre-recorded MP4/AVI/MOV video files.
+- Thread Isolation: Each camera feed runs on an isolated background capture thread (`CaptureWorker`).
+- Reconnection Watchdog: Exponential backoff (1s, 2s, 4s, 8s, up to max 60s) automatically recovers
+  dropped network streams without crashing the host application.
+- Early Downscaling: Video inputs exceeding 1080p are downscaled immediately at ingestion to prevent
+  excessive memory bus pressure.
+- Drop-Oldest Queue: Frames enter a bounded queue (capacity = 2). If ML inference lags behind capture,
+  stale frames are dropped immediately to guarantee zero operational latency.
+
+3.2 IN-MEMORY JPEG RING BUFFER (PRE-ROLL / POST-ROLL)
+----------------------------------------------------------------------------------------------------
+- Bounded Circular Buffer: Maintains compressed JPEG frames in RAM spanning the preceding 4.0 seconds.
+- Memory Efficiency: Compressing frames to JPEG at 85% quality reduces RAM consumption by over 90%
+  compared to raw BGR buffers.
+- Pre-Roll Extraction: When an incident triggers, frames from before the alert are seamlessly stitched
+  together with post-incident frames to produce a complete forensic video clip.
+
+3.3 SPATIAL WEAPON DETECTION & BENIGN SUPPRESSION
+----------------------------------------------------------------------------------------------------
+- Checkpoints:
+  1. Fine-Tuned Threat Model (`weights/weapon_yolo.pt`): Specialized YOLO model detecting Gun (class 0),
+     Explosion (class 1), Grenade (class 2), and Knife (class 3).
+  2. Foundation Vision Model (`weights/yolo11n.pt`): 80-class COCO YOLO model for realistic full-scene
+     understanding (Person, Cell Phone, Bottle, Knife, Scissors, etc.).
+- Benign Object Suppression Engine:
+  A major problem with weapon detection models is false alarms on everyday rectangular or slender objects
+  (e.g., cell phones, pens, water bottles, remote controls). When running multi-class vision, if a candidate
+  weapon bounding box overlaps significantly (IoU >= 0.35) with a recognized benign object (such as a
+  cell phone or remote) and the benign object has higher or comparable confidence, the weapon proposal is
+  automatically suppressed.
+- Geometric Filtering:
+  1. Minimum Box Area: Candidates below 400.0 square pixels (approx 20x20 px) are rejected as sub-pixel
+     noise artifacts.
+  2. Maximum Aspect Ratio: Extremities beyond 8.0:1 are discarded to eliminate linear shadow artifacts.
+
+3.4 MULTI-OBJECT TRACKING & K-OF-N CANDIDATE CONFIRMATION
+----------------------------------------------------------------------------------------------------
+- ByteTrack Association: Uses Kalman filtering and high/low confidence association to maintain object
+  identities across frames even under partial occlusion.
+- K-of-N Temporal Confirmation: An object must be successfully detected in at least K out of the last N
+  sampled frames (default: 2 out of 4 frames) before being promoted from an unconfirmed transient candidate
+  to a confirmed threat alert. This eliminates single-frame optical flickers.
+
+3.5 SPATIOTEMPORAL VIOLENCE CLASSIFICATION & KINETIC DYNAMICS
+----------------------------------------------------------------------------------------------------
+- Architecture: 3D Convolutional Neural Network (TorchVision S3D / R3D-18) processing a rolling temporal
+  window of 16 frames sampled at 8 Hz (covering a 2.0-second action window).
+- Kinetic Motion Dynamics Differencing:
+  To enhance physical altercation recognition, the system calculates normalized pixel intensity
+  differencing between consecutive frames. Rapid struggles, flailing limbs, and physical shoving create
+  elevated kinetic energy spikes, which dynamically modulate the final violence score.
+- Temperature Scaling: Raw model logits are scaled by an empirical calibration factor (T = 1.28) to ensure
+  calibrated probability outputs matching real-world precision.
+
+3.6 TEMPORAL EVENT ENGINE & SEVERITY RULE TRIAGE
+----------------------------------------------------------------------------------------------------
+- Polygon Spatial Zones: Operators draw Include zones (active detection areas) and Ignore zones (public
+  sidewalks, foliage, roads) to eliminate out-of-perimeter false positives.
+- Hysteresis Thresholding: Violence actions activate when score >= 0.65 (Ton) and only deactivate when
+  score drops below 0.40 (Toff) across 2 consecutive windows, preventing rapid alert bouncing.
+- Token-Bucket Rate Limiting: Limits event firing to a maximum of 6 alerts per minute per camera feed,
+  protecting operators from alert fatigue during extended incidents.
+- Discrete Severity Triage (Never Linear Score Summing):
+  - HIGH: Confirmed Weapon AND Confirmed Violent Altercation occurring simultaneously on the same feed.
+  - MEDIUM: Confirmed Weapon alone OR Confirmed Violent Altercation alone.
+  - LOW: Unconfirmed transient candidate or low-confidence anomaly.
+  - INFO: Operational system heartbeat, camera online/offline notice.
+
+3.7 REAL-TIME AUDIO-VISUAL SECURITY ALARM SYSTEM
+----------------------------------------------------------------------------------------------------
+- Synthesized Browser Siren Buzzer:
+  An embedded acoustic emergency warning tone synthesized via PCM WAV audio bytes and the HTML5 Web
+  Audio API (AudioContext oscillator). Generates an unmistakable 880 Hz -> 440 Hz dual-frequency sweep.
+  Requires zero external sound files and works universally across all web browsers without plugins.
+- Operator Controls: Includes an audible siren toggle and an instant "Test Alarm Siren Sound" button.
+- Flashing Tactical Alarm Banner: Renders a high-contrast pulsating banner above the video stream
+  indicating the threat level (CRITICAL / HIGH), target labels (GUN / KNIFE), and dispatch status.
+- Perimeter Alert Border: The surveillance video frame itself is bordered with a bold 4px crimson alert
+  boundary whenever an active threat is detected.
+
+3.8 CRYPTOGRAPHIC EVIDENCE SUBSYSTEM & CHAIN OF CUSTODY
+----------------------------------------------------------------------------------------------------
+- Atomic Keyframe Snapshots: Whenever an alert triggers, the annotated video frame containing bounding
+  boxes, confidence values, and timestamp is written to disk at `evidence/snapshots/{incident_id}_snapshot.jpg`.
+- SHA-256 Digest: Upon file creation, an immutable cryptographic SHA-256 hash is computed and stored in
+  the database. The Incident Detail page validates the physical file against the database digest in real
+  time to guarantee that evidence has not been tampered with or corrupted (`Verified Match`).
+- Facial Privacy Blurring: Applies automated Gaussian blurring across detected human faces before snapshots
+  are rendered or exported.
+
+3.9 MULTI-CHANNEL NOTIFICATION & QUIET-HOURS DISPATCH
+----------------------------------------------------------------------------------------------------
+- Webhook Integration: Sends formatted incident JSON payloads to external systems (Slack, Discord, MS Teams,
+  corporate security dispatch).
+- HMAC-SHA256 Signing: Every webhook request contains an `X-FastTrack-Signature` header calculated using a
+  shared secret key to prevent spoofing.
+- Quiet-Hours Policy: Suppresses non-critical alerts during scheduled hours (e.g., night shifts or weekends),
+  while guaranteeing that HIGH-severity armed incidents immediately bypass suppression.
+
+3.10 HUMAN-IN-THE-LOOP OPERATOR REVIEW & TRIAGE
+----------------------------------------------------------------------------------------------------
+- Immutable Audit Logging: Every operator action (Mark Reviewed, False Alarm, Escalate) is permanently
+  recorded in the `review_actions` table with operator user ID, UTC timestamp, and justification notes.
+- False Alarm Categorization: Operators marking an incident as a false alarm must select a root-cause
+  category (Cleaning equipment, optical glare, benign carried object, playful interaction).
+- Audit Export: Incident dossiers can be downloaded on demand as cryptographically verified JSON audit reports.
+
+
+====================================================================================================
+4. MATHEMATICAL FORMULATIONS & ALGORITHMIC SPECIFICATIONS
+====================================================================================================
+
+4.1 YOLO SPATIAL MULTI-TASK LOSS
+----------------------------------------------------------------------------------------------------
+The spatial object detector optimizes a composite objective balancing bounding box regression,
+classification, and distribution focal loss:
+
+    L_total = lambda_box * L_GIoU + lambda_cls * L_BCE + lambda_dfl * L_DFL
+
+1. Generalized Intersection over Union (GIoU):
+   Given predicted box B and ground truth box B_gt, let C denote the smallest enclosing convex bounding box:
+
+       IoU = |B & B_gt| / |B | B_gt|
+       L_GIoU = 1 - IoU + (|C \ (B | B_gt)| / |C|)
+
+   Unlike standard IoU which yields zero gradient when boxes do not intersect, GIoU provides a continuous
+   gradient driving non-overlapping boxes toward each other.
+
+2. Binary Cross-Entropy Classification Loss (BCE):
+   Evaluates multi-label weapon class assignment:
+
+       L_BCE = - sum_c [ y_c * log(p_c) + (1 - y_c) * log(1 - p_c) ]
+
+3. Distribution Focal Loss (DFL):
+   Models box coordinates as continuous probability distributions over discrete bins rather than fixed
+   delta coordinates, improving accuracy for partially occluded weapons.
+
+
+4.2 BYTETRACK KALMAN STATE ESTIMATION & ASSOCIATION
+----------------------------------------------------------------------------------------------------
+Each active weapon candidate is modeled in continuous 2D camera coordinates by an 8-dimensional state vector:
+
+    x = [u, v, s, r, u_dot, v_dot, s_dot, r_dot]^T
+
+Where:
+- (u, v): Center coordinates of bounding box
+- s: Scale (area in pixels)
+- r: Aspect ratio (width / height)
+- u_dot, v_dot, s_dot, r_dot: Corresponding velocity derivatives
+
+Kalman Prediction Phase:
+    x_{t|t-1} = F * x_{t-1|t-1}
+    P_{t|t-1} = F * P_{t-1|t-1} * F^T + Q
+
+Association:
+Detections and predicted track boxes are matched using the Hungarian Algorithm based on IoU distance:
+    D(i, j) = 1 - IoU(B_det_i, B_track_j)
+
+
+4.3 K-OF-N TEMPORAL CONFIRMATION ALGORITHM
+----------------------------------------------------------------------------------------------------
+Let W_t denote a fixed-size FIFO sliding window of boolean detection flags over the last N sampled frames:
+
+    W_t = [d_{t-N+1}, d_{t-N+2}, ..., d_t],  where d_i in {0, 1}
+
+The candidate object is promoted to an ACTIVE THREAT if and only if:
+
+    Sum_{i=1}^N (d_i) >= K
+
+Default operational parameters: N = 4 frames, K = 2 frames. Transient noise appearing for only a single
+frame achieves Sum = 1 < 2 and is discarded before sounding the alarm.
+
+
+4.4 S3D SEPARABLE 3D SPATIOTEMPORAL CONVOLUTIONS
+----------------------------------------------------------------------------------------------------
+Standard 3D convolutions apply kernels of size (k_t x k_s x k_s), which requires heavy floating-point
+multiplication (O(k_t * k_s^2 * C_in * C_out)).
+
+S3D factorizes the 3D convolution into two decoupled operations:
+1. Spatial Convolution: Applies a 2D spatial kernel (1 x k_s x k_s) extracting static spatial features.
+2. Temporal Convolution: Applies a 1D temporal kernel (k_t x 1 x 1) capturing motion dynamics over time.
+
+This factorization reduces computation by over 33% and improves generalization on human action datasets.
+
+
+4.5 TEMPERATURE SCALING & PROBABILITY CALIBRATION
+----------------------------------------------------------------------------------------------------
+Deep neural network softmax outputs frequently exhibit overconfidence. Given uncalibrated logit vector z:
+
+    p_i = exp(z_i / T) / sum_j [ exp(z_j / T) ]
+
+Where T is the learned temperature parameter (T = 1.28).
+- When T > 1.0: Softens probability distributions, curbing false high-confidence predictions on edge cases.
+- When T = 1.0: Standard softmax probability.
+
+
+4.6 KINETIC MOTION DYNAMICS DIFFERENCING
+----------------------------------------------------------------------------------------------------
+Given consecutive grayscale video frames I_{t-1} and I_t:
+
+    Delta_t(x, y) = | I_t(x, y) - I_{t-1}(x, y) |
+    E_kinetic(t) = (1 / (H * W)) * sum_{x,y} [ Delta_t(x, y) * Step(Delta_t(x, y) - theta_noise) ]
+
+Where theta_noise suppresses camera sensor thermal noise. High kinetic energy spikes indicate violent struggles,
+rapid limb swings, and running, which dynamically boost the calibrated violence action score.
+
+
+4.7 EXPONENTIAL MOVING AVERAGE (EMA) SMOOTHING
+----------------------------------------------------------------------------------------------------
+To prevent high-frequency frame jitter:
+
+    S_smooth(t) = alpha * S_current(t) + (1 - alpha) * S_smooth(t-1)
+
+Operational smoothing coefficient: alpha = 0.35.
+
+
+4.8 DUAL-THRESHOLD HYSTERESIS STATE TRANSITIONS
+----------------------------------------------------------------------------------------------------
+To prevent alarm flickering when violence probabilities oscillate around the decision boundary:
+
+    State(t) = ACTIVE   if Score(t) >= T_on (0.65)
+    State(t) = ACTIVE   if State(t-1) == ACTIVE and Score(t) > T_off (0.40)
+    State(t) = INACTIVE if Score(t) <= T_off (0.40)
+
+
+4.9 ALERT STORM TOKEN-BUCKET RATE LIMITER
+----------------------------------------------------------------------------------------------------
+Protects operators from repeated alert spam during prolonged incidents:
+
+    B_t = min(B_max, B_{t-1} + r * Delta_t)
+
+Where:
+- B_max = 6 tokens (maximum burst capacity)
+- r = 0.1 tokens/sec (6 tokens replenished per minute)
+- Each alert emission consumes 1 token. When B_t < 1, candidate alerts are merged into the active incident
+  without triggering redundant sound alarms or webhook blasts.
+
+
+====================================================================================================
+5. DATABASE ARCHITECTURE & SCHEMA SPECIFICATION (SQLite WAL Mode)
+====================================================================================================
+Database file: `data/fasttrack.db` (Configured with PRAGMA journal_mode=WAL for high-concurrency read/write).
+
+TABLE 1: `cameras`
+- `id` (TEXT, PK): Unique camera identifier (e.g., 'cam-demo-01', 'cam-01')
+- `name` (TEXT): Human-readable descriptive name (e.g., 'Main Gate - South Entrance')
+- `source_type` (TEXT): Video adapter type ('file', 'webcam', 'rtsp')
+- `source_ref_masked` (TEXT): Sanitized source URI or file path (passwords masked)
+- `enabled` (INTEGER): Stream state (1 = active, 0 = disabled)
+- `zones_json` (TEXT): JSON array of normalized polygon coordinates for include/ignore zones
+- `thresholds_json` (TEXT): Camera-specific overrides for weapon and violence thresholds
+- `schedule_json` (TEXT): Active operational hours and quiet-hours policy
+- `created_utc` (TEXT): ISO 8601 creation timestamp
+
+TABLE 2: `incidents`
+- `id` (TEXT, PK): Unique incident identifier (e.g., 'inc-demo-101', 'inc-3a8f9c10')
+- `camera_id` (TEXT, FK -> cameras.id): Source camera feed
+- `severity` (TEXT): Triage severity ('INFO', 'LOW', 'MEDIUM', 'HIGH')
+- `status` (TEXT): Review lifecycle ('new', 'reviewed', 'false_alarm', 'escalated')
+- `start_utc` (TEXT): Incident start timestamp
+- `end_utc` (TEXT): Incident conclusion timestamp
+- `peak_weapon_score` (REAL): Maximum observed weapon confidence (0.0 to 1.0)
+- `peak_violence_score` (REAL): Maximum observed violence action probability (0.0 to 1.0)
+- `summary` (TEXT): Concise textual incident summary
+
+TABLE 3: `events`
+- `id` (TEXT, PK): Unique atomic event identifier (e.g., 'evt-001')
+- `incident_id` (TEXT, FK -> incidents.id): Parent aggregated incident
+- `camera_id` (TEXT, FK -> cameras.id): Camera feed
+- `ts_utc` (TEXT): Precise event detection timestamp
+- `event_type` (TEXT): Signal category ('weapon_detection', 'possible_violence', 'system_alert')
+- `class_name` (TEXT): Detected object or action label (e.g., 'knife', 'gun', 'physical_altercation')
+- `raw_score` (REAL): Raw uncalibrated model output
+- `calibrated_score` (REAL): Temperature-scaled calibrated confidence
+- `bbox_json` (TEXT): JSON array [x1, y1, x2, y2] bounding box coordinates
+- `track_id` (INTEGER): ByteTrack persistent tracking ID
+- `model_version_id` (TEXT): Neural network checkpoint identifier
+- `evidence_id` (TEXT, FK -> evidence.id): Linked cryptographic evidence item
+
+TABLE 4: `evidence`
+- `id` (TEXT, PK): Unique evidence identifier (e.g., 'ev-001', 'ev-clip-101')
+- `kind` (TEXT): Artifact type ('snapshot' or 'clip')
+- `path` (TEXT): Relative file path on storage disk (e.g., 'evidence/snapshots/demo_knife_snapshot.jpg')
+- `sha256` (TEXT): 64-character hexadecimal SHA-256 cryptographic digest of physical file
+- `size_bytes` (INTEGER): Exact file size in bytes
+- `encrypted` (INTEGER): Encryption state flag (0 = plaintext, 1 = AES-GCM encrypted)
+- `created_utc` (TEXT): Creation timestamp
+- `expires_utc` (TEXT): Data retention expiration timestamp
+
+TABLE 5: `review_actions` (Append-Only Audit Trail)
+- `id` (TEXT, PK): Unique action identifier
+- `incident_id` (TEXT, FK -> incidents.id): Reviewed incident
+- `user_id` (TEXT): Reviewing security operator username
+- `action` (TEXT): Triage action ('mark_reviewed', 'mark_false_alarm', 'escalate', 'add_note')
+- `note` (TEXT): Required operator justification / audit notes
+- `ts_utc` (TEXT): Timestamp action was committed
+
+TABLE 6: `users`
+- `id` (TEXT, PK): Unique user identifier
+- `username` (TEXT, UNIQUE): Login username
+- `password_hash` (TEXT): Salted Argon2id cryptographic password hash
+- `role` (TEXT): Access control role ('admin', 'reviewer', 'viewer')
+- `active` (INTEGER): Account status flag (1 = active, 0 = disabled)
+- `last_login_utc` (TEXT): Last authenticated login timestamp
+
+
+====================================================================================================
+6. COMMAND CENTER USER INTERFACE (PAGE-BY-PAGE BREAKDOWN)
+====================================================================================================
+The user interface is an interactive, dark-themed Streamlit application accessed via web browser:
+
+1. Overview Dashboard (`ui/pages/01_overview.py`):
+   - Executive operations wall displaying active cameras, 24-hour incident volume, active threats, and MTTR.
+   - Live multi-camera snapshot preview grid with status pills.
+   - Chronological recent incident activity log with severity badges.
+
+2. Live Video Surveillance Wall (`ui/pages/02_live_monitor.py`):
+   - Multi-source selector: Upload video files (MP4/AVI/MOV), connect live webcams, demo corridor footage,
+     or live network RTSP camera streams.
+   - Real-time video player rendering tactical HUD overlays, telemetry (FPS, latency, hardware device),
+     bounding boxes with corner brackets, and threat status banners.
+   - Realistic Vision HUD: Differentiates ambient objects (person, phone, bottle in calm cyan) from real
+     threats (gun, knife in flashing red/amber).
+   - Audio Siren: Dual-frequency synthesized acoustic warning buzzer with toggle and test button.
+   - Dynamic Tuning Sliders: Real-time operator adjustment of Weapon Threshold (0.20-0.90), Violence
+     Threshold (0.30-0.90), and Processing FPS limit.
+   - Model Switcher: Select between Specialized Threat Model (Gun/Knife/Grenade) and Foundation YOLO11n.
+
+3. Incident Registry (`ui/pages/03_incidents.py`):
+   - Comprehensive incident table filterable by status (New, Reviewed, False Alarm, Escalated), severity,
+     and date range.
+   - Quick-action buttons to jump directly into forensic deep-dive review.
+
+4. Forensic Evidence Detail (`ui/pages/04_incident_detail.py`):
+   - Surveillance Video Playback: Dedicated video player loading attached incident clips, camera recordings,
+     or demo footage, plus an external CCTV video uploader.
+   - Cryptographic Evidence Inspection: Displays keyframe snapshots with real-time SHA-256 integrity validation
+     badges (green lock = verified match; red warning = tamper / missing file).
+   - Chronological Sub-Events Timeline: Expandable atomic detections with bounding box coordinates, track IDs,
+     and calibrated scores.
+   - Operator Triage Workflow: Interactive form to Mark Reviewed, Mark False Alarm (with mandatory category
+     selection), Escalate to Supervisor, and export verified JSON audit reports.
+
+5. Analytics & MTTR (`ui/pages/05_analytics.py`):
+   - Mean Time to Review (MTTR) performance metrics, false alarm rate KPIs, and hourly threat distribution.
+   - Pareto analysis chart categorizing false alarm root causes.
+
+6. Model Benchmarks & Evaluation (`ui/pages/06_evaluation.py`):
+   - Verifiable Precision-Recall (PR) curves, ROC curves, and confusion matrices loaded directly from
+     static evaluation artifacts (`reports/eval/`).
+
+7. Cameras & Spatial Zones (`ui/pages/07_cameras_zones.py`):
+   - Camera registration management (RTSP URL, credentials, frame rate).
+   - Interactive polygon editor to configure Include / Ignore spatial detection zones.
+
+8. Model Registry (`ui/pages/08_models.py`):
+   - Active neural network checkpoints, parameter counts, input resolutions, and inference latency benchmarks.
+
+9. Settings (`ui/pages/09_settings.py`):
+   - Global system configuration, storage retention cleanup policies, and webhook notification endpoints.
+
+10. Users & Audit Trail (`ui/pages/10_users_audit.py`):
+    - Role-Based Access Control (RBAC) user management and chronological audit trail of all operator actions.
+
+11. Help & Architecture Manual (`ui/pages/11_help.py`):
+    - In-app technical manual, keyboard shortcuts, and viva reference guide.
+
+
+====================================================================================================
+7. CODEBASE DIRECTORY MAP & FILE ROLES
+====================================================================================================
+
+REAL-TIME CRIME AND WEAPON DETECTION SYSTEM/
+|-- app.py                          # Streamlit application entry point & navigation router
+|-- run.py                          # Master CLI operational runner (ui, demo, test, check, eval)
+|-- requirements.txt                # Production Python dependencies
+|-- pyproject.toml                  # Project packaging and tool configuration
+|-- pytest.ini                      # PyTest testing suite configuration
+|-- config/
+|   |-- default.yaml                # Master system configuration settings
+|-- src/
+|   |-- fasttrack/
+|       |-- core/
+|       |   |-- config.py           # Pydantic configuration schemas and validation
+|       |   |-- types.py            # Core domain dataclasses (Detection, Frame, BoundingBox)
+|       |   |-- errors.py           # Standardized exception hierarchy
+|       |   |-- logging.py          # Namespaced logging and credential masking
+|       |   |-- clock.py            # System and simulated clock abstractions
+|       |-- ml/
+|       |   |-- weapon_detector.py  # YOLO weapon detector with benign object suppression
+|       |   |-- violence_detector.py# S3D spatiotemporal violence classifier + kinetic differencing
+|       |   |-- tracker.py          # ByteTrack multi-object tracker & K-of-N confirmation
+|       |   |-- calibration.py      # Temperature scaling logit calibrator
+|       |   |-- saliency.py         # Temporal saliency and Grad-CAM visualization
+|       |   |-- benchmark.py        # Model throughput and latency benchmark harness
+|       |-- events/
+|       |   |-- engine.py           # Central temporal event engine coordinator
+|       |   |-- incident.py         # Incident aggregate state machine
+|       |   |-- severity.py         # Rule-based severity classification
+|       |   |-- zones.py            # Spatial polygon point-in-polygon zone filter
+|       |   |-- dedup.py            # Alert storm token-bucket rate limiter
+|       |-- storage/
+|       |   |-- db.py               # SQLite WAL-mode connection and query manager
+|       |   |-- evidence.py         # EvidenceWriter, SHA-256 hasher, face anonymizer
+|       |   |-- migrations.py       # Forward schema database migration runner
+|       |   |-- retention.py        # Automated disk space and TTL retention cleanup
+|       |-- sources/
+|       |   |-- factory.py          # VideoSource factory pattern
+|       |   |-- file_source.py      # Local video file stream adapter
+|       |   |-- webcam_source.py    # USB and integrated camera hardware adapter
+|       |   |-- rtsp_source.py      # Network RTSP stream reader with watchdog
+|       |   |-- reconnect.py        # Exponential backoff reconnection manager
+|       |-- pipeline/
+|       |   |-- stream_manager.py   # Multi-camera pipeline lifecycle coordinator
+|       |   |-- camera_stream.py    # Single camera streaming orchestrator
+|       |   |-- workers.py          # Threaded CaptureWorker and ProcessingWorker
+|       |   |-- ring_buffer.py      # In-memory JPEG circular frame buffer
+|       |   |-- telemetry.py        # FPS and latency performance metrics collector
+|       |-- review/
+|       |   |-- service.py          # Incident triage, false alarm, and escalation workflow
+|       |-- auth/
+|       |   |-- service.py          # Argon2id password hashing and RBAC enforcement
+|       |-- notifications/
+|       |   |-- dispatcher.py       # Webhook alert dispatcher
+|       |   |-- webhook.py          # HMAC-SHA256 signed HTTP webhook client
+|-- ui/
+|   |-- components.py               # Reusable UI widgets (gauges, KPI cards, badges)
+|   |-- theme.py                    # CSS styling and dark-theme tactical variables
+|   |-- pages/                      # 11 modular Streamlit dashboard pages
+|-- scripts/
+|   |-- seed_demo_data.py           # Seeds database and generates synthetic video/snapshots
+|   |-- env_report.py               # Hardware and environment verification diagnostics
+|   |-- eval_weapon.py              # Evaluates weapon detector and generates metrics JSON
+|   |-- eval_violence.py            # Evaluates violence classifier and generates metrics JSON
+|-- tests/                          # 81 comprehensive unit, integration, and E2E tests
+|-- weights/                        # Neural network checkpoints (.pt, .onnx)
+|-- data/                           # Local database (fasttrack.db) and demo corridor video
+|-- evidence/                       # Forensic evidence snapshots and video clips
+
+
+====================================================================================================
+8. HOW TO INSTALL, CONFIGURE, TEST & OPERATE
+====================================================================================================
+
+8.1 SYSTEM REQUIREMENTS
+----------------------------------------------------------------------------------------------------
+- Operating System: Windows 10/11 or Ubuntu 20.04/22.04 LTS
+- Python: Version 3.10 or 3.11
+- Hardware Acceleration: NVIDIA GPU with CUDA 12.x support (e.g., RTX 3050, RTX 3060, T4)
+- CPU Fallback: Supported automatically if no CUDA-compatible GPU is detected.
+
+8.2 INSTALLATION
+----------------------------------------------------------------------------------------------------
+1. Clone the repository and navigate to the project directory:
+   cd "d:\projects\REAL-TIME CRIME AND WEAPON DETECTION SYSTEM"
+
+2. Install dependencies:
+   pip install -r requirements.txt
+
+3. Verify environment and hardware diagnostics:
+   python scripts/env_report.py
+
+8.3 SEEDING DEMO DATA
+----------------------------------------------------------------------------------------------------
+Generates synthetic corridor surveillance footage, evidence keyframe snapshots, and mock incidents:
+   python run.py demo
+
+8.4 LAUNCHING COMMAND CENTER
+----------------------------------------------------------------------------------------------------
+Launches the interactive Streamlit Security Command Center on port 8501:
+   python run.py ui
+Access the dashboard in your web browser at: http://localhost:8501
+
+8.5 RUNNING QUALITY CHECKS & TESTS
+----------------------------------------------------------------------------------------------------
+1. Run linter check across all files (Ruff):
+   python run.py check
+
+2. Run automated test suite (PyTest):
+   pytest tests/ -v
+   (All 81 tests should pass in ~24 seconds)
+
+
+====================================================================================================
+9. EXAMINER VIVA & DEFENSE QUESTIONS AND ANSWERS
+====================================================================================================
+
+Q1: Why did you decouple spatial weapon detection from spatiotemporal violence classification?
+A1: A weapon is a static spatial object (a physical knife or firearm existing within a single frame),
+whereas violence is a temporal action pattern (punches, struggles, and shoving unfolding across multiple
+seconds). Conflating both into a single model leads to severe false alarms (e.g., a person holding an
+umbrella flagged as violence, or a person hugging flagged as weapon possession). Decoupling them allows
+YOLO to run at full camera FPS for spatial precision while S3D processes rolling 16-frame action clips.
+
+Q2: How does the system prevent false alarms on cell phones, pens, or water bottles?
+A2: We implement Benign Object Suppression and Full-Scene Multi-Class NMS. In standard setups where the
+model is artificially restricted to class 43 (knife), the model cannot predict "cell phone", so faint
+knife-like features on the phone's edge survive uninhibited. By running full-class competition, YOLO
+identifies the object as a "cell phone" with high confidence (e.g. 0.88), naturally suppressing the weak
+knife proposal. Additionally, spatial overlap suppression rejects weapon candidates that intersect with
+benign everyday objects.
+
+Q3: Why use SQLite instead of a heavier database like PostgreSQL or MongoDB?
+A3: FastTrack AI is engineered for edge deployment directly on localized CCTV recording servers. SQLite
+requires zero network socket overhead, zero external daemon processes, and operating in Write-Ahead
+Logging (WAL) mode supports concurrent multi-threaded writes alongside continuous dashboard reads with
+microsecond latency.
+
+Q4: What happens if GPU video memory (VRAM) runs out during live surveillance?
+A4: Both the weapon and violence detectors implement CUDA Out-of-Memory (OOM) recovery blocks. When an
+OOM exception is caught, the system empties the PyTorch CUDA cache, transitions to CPU Host inference
+mode, logs an operational warning, and continues processing without crashing the camera stream.
+
+Q5: How is chain-of-custody guaranteed for forensic evidence in legal proceedings?
+A5: Whenever an alert triggers, keyframes and video clips are written atomically to storage, and an
+immutable SHA-256 cryptographic hash digest is computed and stored in the database. When evidence is
+retrieved, the file is re-hashed on disk; if even a single byte has been modified, the hash verification
+fails, displaying an immediate visual tamper warning on the forensic review screen.
+
+Q6: Why are probabilities from weapon and violence models not summed together?
+A6: P(weapon) and P(violence) are non-additive probabilities from disparate probability distributions.
+Summing them (e.g. 0.40 weapon + 0.35 violence = 0.75) is mathematically meaningless and creates false
+emergencies from two weak uncertainties. Instead, we use boolean state rules: a HIGH alert strictly
+requires both signals to independently cross their calibrated operational thresholds.
+
+====================================================================================================
+END OF FAST-TRACK AI MASTER ARCHITECTURE & WORKFLOW MANUAL
+====================================================================================================
